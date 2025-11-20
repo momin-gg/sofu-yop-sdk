@@ -87,7 +87,3 @@ $payload = $client->decryptPayload($encrypted, $decryptKey);
 
 - 当前示例脚本适合作为联调/调试使用；
 - 如需更完善的自动化回归测试，可以在此基础上引入 PHPUnit，为签名生成、回调解密等核心逻辑编写单元测试。
-
-## 许可证
-
-本项目使用 MIT License 开源，具体条款请参考仓库中的 LICENSE 文件（如有）。
