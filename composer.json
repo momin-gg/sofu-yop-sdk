@@ -1,5 +1,5 @@
 {
-  "name": "moming/sofu-yop-sdk",
+  "name": "moming/sofu-php-sdk",
   "description": "嗖付聚合支付 PHP SDK",
   "type": "library",
   "license": "MIT",
