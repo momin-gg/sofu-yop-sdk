@@ -9,17 +9,33 @@ trait Api
 {
     /**
      * 聚合支付统一下单
+     *
+     * @param string $orderId     商户订单号
+     * @param float  $orderAmount 订单金额（元）
+     * @param string $goodsName   商品名称
+     * @param string $payWay      支付方式: NATIVE(扫码) | H5_PAY(H5) | MINI_PROGRAM(小程序)
+     * @param string $channel     支付渠道: WECHAT | ALIPAY | UNIONPAY
+     * @param string $notifyUrl   异步回调地址
+     * @param string $userIp      用户IP（H5支付必填）
+     * @param string $returnUrl   支付完成跳转地址（可选）
+     * @param string $openId      小程序用户openid（小程序支付必填）
      */
-    public function unifiedOrder($orderId, $orderAmount, $goodsName, $payWay, $channel, $notifyUrl, $options = [])
+    public function unifiedOrder($orderId, $orderAmount, $goodsName, $payWay, $channel, $notifyUrl, $userIp = null, $returnUrl = null, $openId = null)
     {
-        return $this->client->post('/zro/pay/unify-pay', array_merge([
+        $params = [
             'orderId'     => $orderId,
             'orderAmount' => $orderAmount,
             'goodsName'   => $goodsName,
             'payWay'      => $payWay,
             'channel'     => $channel,
             'notifyUrl'   => $notifyUrl,
-        ], $options));
+        ];
+
+        if ($userIp) $params['userIp'] = $userIp;
+        if ($returnUrl) $params['returnUrl'] = $returnUrl;
+        if ($openId) $params['openId'] = $openId;
+
+        return $this->client->post('/zro/pay/unify-pay', $params);
     }
 
     /**
