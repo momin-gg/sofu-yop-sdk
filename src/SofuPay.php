@@ -3,81 +3,107 @@
 namespace Sofu\Pay;
 
 use Sofu\Pay\Lib\HttpClient;
-use Sofu\Pay\Lib\Api;
 use Sofu\Pay\Lib\Utils;
 
 /**
- * 嗖付 SDK 入口
+ * 嗖付 SDK
  */
 class SofuPay
 {
-    private $api;
+    private $client;
     private $decryptKey;
 
-    private static $apiPaths = [
-        'unified_order'    => '/zro/pay/unify-pay',
-        'query_order'      => '/zro/trade/order-query',
-        'refund'           => '/zro/trade/refund',
-        'query_refund'     => '/zro/trade/refund-query',
-        'query_balance'    => '/zro/account/balance-query',
-        'query_settlement' => '/zro/account/settlable-query',
-    ];
-
     /**
-     * 构造函数
-     * 
-     * 自动从项目根目录的 .env 文件加载配置
+     * 构造函数 - 自动加载 .env 配置
      */
     public function __construct()
     {
-        // 自动查找 .env 文件
         $envPath = $this->findEnvFile();
         if ($envPath) {
             Utils::loadEnv($envPath);
         }
 
-        $merchantNo  = Utils::env('SOFU_MERCHANT_NO');
-        $appKey      = Utils::env('SOFU_APP_KEY');
-        $privateKey  = Utils::env('SOFU_PRIVATE_KEY');
-        $endpoint    = Utils::env('SOFU_ENDPOINT', 'https://developer.sofubao.com');
         $this->decryptKey = Utils::env('SOFU_DECRYPT_KEY', '');
-
-        $client = new HttpClient([
-            'merchant_no' => $merchantNo,
-            'app_key'     => $appKey,
-            'private_key' => $privateKey,
-            'endpoint'    => $endpoint,
+        $this->client = new HttpClient([
+            'merchant_no' => Utils::env('SOFU_MERCHANT_NO'),
+            'app_key'     => Utils::env('SOFU_APP_KEY'),
+            'private_key' => Utils::env('SOFU_PRIVATE_KEY'),
+            'endpoint'    => Utils::env('SOFU_ENDPOINT', 'https://developer.sofubao.com'),
             'timeout'     => 30,
         ]);
-
-        $this->api = new Api($client, self::$apiPaths);
     }
 
-    /**
-     * 查找 .env 文件
-     */
     private function findEnvFile()
     {
         $paths = [
-            dirname(__DIR__) . '/.env',           // SDK 目录
-            getcwd() . '/.env',                   // 当前工作目录
-            dirname(getcwd()) . '/.env',          // 上级目录
+            dirname(__DIR__) . '/.env',
+            getcwd() . '/.env',
+            dirname(getcwd()) . '/.env',
         ];
-
         foreach ($paths as $path) {
-            if (file_exists($path)) {
-                return $path;
-            }
+            if (file_exists($path)) return $path;
         }
         return null;
     }
 
+    // ==================== API 方法 ====================
+
     /**
-     * 获取 API 实例
+     * 聚合支付统一下单
      */
-    public function api()
+    public function unifiedOrder($orderId, $orderAmount, $goodsName, $payWay, $channel, $notifyUrl, $options = [])
     {
-        return $this->api;
+        return $this->client->post('/zro/pay/unify-pay', array_merge([
+            'orderId'     => $orderId,
+            'orderAmount' => $orderAmount,
+            'goodsName'   => $goodsName,
+            'payWay'      => $payWay,
+            'channel'     => $channel,
+            'notifyUrl'   => $notifyUrl,
+        ], $options));
+    }
+
+    /**
+     * 订单查询
+     */
+    public function queryOrder($orderNo)
+    {
+        return $this->client->post('/zro/trade/order-query', ['orderNo' => $orderNo]);
+    }
+
+    /**
+     * 申请退款
+     */
+    public function refund($orderNo, $refundMoney, $description = null, $notifyUrl = null)
+    {
+        $params = ['orderNo' => $orderNo, 'refundMoney' => $refundMoney];
+        if ($description) $params['description'] = $description;
+        if ($notifyUrl) $params['notifyUrl'] = $notifyUrl;
+        return $this->client->post('/zro/trade/refund', $params);
+    }
+
+    /**
+     * 退款查询
+     */
+    public function queryRefund()
+    {
+        return $this->client->post('/zro/trade/refund-query');
+    }
+
+    /**
+     * 账户余额查询
+     */
+    public function queryBalance()
+    {
+        return $this->client->post('/zro/account/balance-query');
+    }
+
+    /**
+     * 待结算查询
+     */
+    public function queryPendingSettlement()
+    {
+        return $this->client->post('/zro/account/settlable-query');
     }
 
     /**
@@ -86,37 +112,5 @@ class SofuPay
     public function decryptCallback($data, $key = null)
     {
         return Utils::decrypt($data, $key ?: $this->decryptKey);
-    }
-
-    // ==================== API 快捷方法 ====================
-
-    public function unifiedOrder($orderId, $orderAmount, $goodsName, $payWay, $channel, $notifyUrl, $options = [])
-    {
-        return $this->api->unifiedOrder($orderId, $orderAmount, $goodsName, $payWay, $channel, $notifyUrl, $options);
-    }
-
-    public function queryOrder($orderNo)
-    {
-        return $this->api->queryOrder($orderNo);
-    }
-
-    public function refund($orderNo, $refundMoney, $description = null, $notifyUrl = null)
-    {
-        return $this->api->refund($orderNo, $refundMoney, $description, $notifyUrl);
-    }
-
-    public function queryRefund()
-    {
-        return $this->api->queryRefund();
-    }
-
-    public function queryBalance()
-    {
-        return $this->api->queryBalance();
-    }
-
-    public function queryPendingSettlement()
-    {
-        return $this->api->queryPendingSettlement();
     }
 }
