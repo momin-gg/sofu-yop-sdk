@@ -7,7 +7,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Sofu\Pay\SofuPay;
 
-$sdk = SofuPay::fromEnv(__DIR__ . '/../.env');
+$sdk = new SofuPay();
 
 // 统一下单测试
 $response = $sdk->unifiedOrder(

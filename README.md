@@ -33,7 +33,7 @@ SOFU_ENDPOINT=https://developer.sofubao.com
 ```php
 use Sofu\Pay\SofuPay;
 
-$sdk = SofuPay::fromEnv(__DIR__ . '/.env');
+$sdk = new SofuPay();
 $response = $sdk->queryBalance();
 ```
 

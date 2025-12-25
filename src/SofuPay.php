@@ -26,10 +26,12 @@ class SofuPay
     /**
      * 构造函数
      * 
-     * @param string $envPath .env 文件路径（可选）
+     * 自动从项目根目录的 .env 文件加载配置
      */
-    public function __construct($envPath = null)
+    public function __construct()
     {
+        // 自动查找 .env 文件
+        $envPath = $this->findEnvFile();
         if ($envPath) {
             Utils::loadEnv($envPath);
         }
@@ -52,11 +54,22 @@ class SofuPay
     }
 
     /**
-     * 从 .env 文件创建实例
+     * 查找 .env 文件
      */
-    public static function fromEnv($envPath)
+    private function findEnvFile()
     {
-        return new self($envPath);
+        $paths = [
+            dirname(__DIR__) . '/.env',           // SDK 目录
+            getcwd() . '/.env',                   // 当前工作目录
+            dirname(getcwd()) . '/.env',          // 上级目录
+        ];
+
+        foreach ($paths as $path) {
+            if (file_exists($path)) {
+                return $path;
+            }
+        }
+        return null;
     }
 
     /**
