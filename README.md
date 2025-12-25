@@ -5,7 +5,7 @@
 ## 安装
 
 ```bash
-composer require sofu/php-sdk
+composer require moming/sofu-php-sdk
 ```
 
 ## 配置
