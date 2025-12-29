@@ -3,6 +3,8 @@
   "description": "嗖付聚合支付 PHP SDK",
   "type": "library",
   "license": "MIT",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "authors": [
     {
       "name": "moming"
